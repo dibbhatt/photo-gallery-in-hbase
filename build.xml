@@ -34,9 +34,11 @@
 		<fileset dir="${hbase.home}" includes="*.jar" />
 		<pathelement location="${conf.dir}" />
 	</path>
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+	</target>
 
-
-	<target name="compile">
+	<target name="compile" depends="init">
 		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="${javac.debug}" optimize="${javac.optimize}" target="${javac.version}" source="${javac.version}" deprecation="${javac.deprecation}">
 			<compilerarg line="${javac.args} ${javac.args.warnings}" />
 			<classpath>
@@ -54,12 +56,19 @@
 		<jar jarfile="${final.name}.jar" basedir="${build.dir}">
 		</jar>
 	</target>
-
+	<!--
 	<target name="run">
 		<java classname="${mainClass}" fork="true" classpathref="classpath.run">
 			<arg value="${cmd}" />
-			<arg value="${tableName}" />
+			<arg value="${inputTableName}" />
 			<arg value="${outputdir}" />
+		</java>
+	</target>
+-->
+	<target name="run">
+		<java classname="${mainClass}" fork="true" classpathref="classpath.run">
+			<arg value="${inputCSVFile}" />
+			<arg value="${tableName}" />
 		</java>
 	</target>
 

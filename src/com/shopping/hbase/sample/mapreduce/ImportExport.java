@@ -212,7 +212,7 @@ return put;
 			
 			//job.setOutputFormatClass(TableOutputFormat.class);
 
-			TableMapReduceUtil.initTableReducerJob("outputTable", Reduce.class,
+			TableMapReduceUtil.initTableReducerJob(tableName, null,
 					job);
 
 			// the following are done implicitly by initTableReducerJob

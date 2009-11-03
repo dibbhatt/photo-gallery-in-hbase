@@ -11,9 +11,7 @@
 	<classpathentry kind="lib" path="lib/commons-logging-api-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/hadoop-0.20.1-ant.jar"/>
-	<classpathentry kind="lib" path="lib/hadoop-0.20.1-examples.jar"/>
 	<classpathentry kind="lib" path="lib/hadoop-0.20.1-hdfs127-core.jar"/>
-	<classpathentry kind="lib" path="lib/hadoop-0.20.1-test.jar"/>
 	<classpathentry kind="lib" path="lib/hadoop-0.20.1-tools.jar"/>
 	<classpathentry kind="lib" path="lib/hbase-0.20.1-test.jar"/>
 	<classpathentry kind="lib" path="lib/hbase-0.20.1.jar"/>
