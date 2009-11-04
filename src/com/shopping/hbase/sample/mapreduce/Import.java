@@ -34,7 +34,6 @@ import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableReducer;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -72,7 +71,9 @@ import org.apache.hadoop.util.GenericOptionsParser;
  */
 public class Import {
 
-	private static final String NAME = "SampleUploader";
+	private static final String NAME = "Import";
+	public static final byte[] family = Bytes.toBytes("sample");
+	public static final byte[] qualifier = Bytes.toBytes("firstSet");
 
 	static class Importer extends
 			Mapper<Text, BytesWritable, ImmutableBytesWritable, Put> {
@@ -83,19 +84,12 @@ public class Import {
 		@Override
 		public void map(Text key, BytesWritable bytes, Context context)
 				throws IOException {
-			System.out.println("row=" + key);
-
-			// Input is a binary file
-			byte[] family = Bytes.toBytes("sample");
-			byte[] qualifier = Bytes.toBytes("firstSet");
-
 			// Create Put
 			Put put = new Put(key.getBytes());
 			put.add(family, qualifier, bytes.getBytes());
 
 			// Uncomment below to disable WAL. This will improve performance but
-			// means
-			// you will experience data loss in the case of a RegionServer
+			// means you will experience data loss in the case of a RegionServer
 			// crash.
 			// put.setWriteToWAL(false);
 

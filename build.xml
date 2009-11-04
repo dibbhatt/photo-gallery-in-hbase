@@ -66,17 +66,24 @@
 	</target>
 -->
 	<target name="sampleUploader">
-		<java classname="${mainClass}" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.sample.mapreduce.SampleUploader" fork="true" classpathref="classpath.run">
 			<arg value="${inputCSVFile}" />
 			<arg value="${tableName}" />
 		</java>
 	</target>
 
-	<target name="run">
-		<java classname="${mainClass}" fork="true" classpathref="classpath.run">
+	<target name="import">
+		<java classname="com.shopping.hbase.sample.mapreduce.Import" fork="true" classpathref="classpath.run">
 			<arg value="${imageFilesFolder}" />
 			<arg value="${sequenceFilesFolder}" />
 			<arg value="${imageTableName}" />
+		</java>
+	</target>
+
+	<target name="export">
+		<java classname="com.shopping.hbase.sample.mapreduce.Export" fork="true" classpathref="classpath.run">
+			<arg value="${imageTableName}" />
+			<arg value="${file}"/>
 		</java>
 	</target>
 
