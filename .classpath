@@ -11,9 +11,9 @@
 	<classpathentry kind="lib" path="lib/commons-logging-api-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/hadoop-0.20.1-ant.jar"/>
-	<classpathentry kind="lib" path="lib/hadoop-0.20.1-hdfs127-core.jar"/>
+	<classpathentry kind="lib" path="lib/hadoop-0.20.1-hdfs127-core.jar" sourcepath="C:/java/hadoop-0.20.1/src/mapred/"/>
 	<classpathentry kind="lib" path="lib/hadoop-0.20.1-tools.jar"/>
-	<classpathentry kind="lib" path="lib/hbase-0.20.1-test.jar"/>
+	<classpathentry kind="lib" path="lib/hbase-0.20.1-test.jar" sourcepath="/hbase-src/src/java"/>
 	<classpathentry kind="lib" path="lib/hbase-0.20.1.jar"/>
 	<classpathentry kind="lib" path="lib/jasper-compiler-5.5.12.jar"/>
 	<classpathentry kind="lib" path="lib/jasper-runtime-5.5.12.jar"/>
