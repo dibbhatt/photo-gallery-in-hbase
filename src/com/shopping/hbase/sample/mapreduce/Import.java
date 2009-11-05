@@ -84,6 +84,8 @@ public class Import {
 		@Override
 		public void map(Text key, BytesWritable bytes, Context context)
 				throws IOException {
+			//System.out.println("in map key is " + key);
+			
 			// Create Put
 			Put put = new Put(key.getBytes());
 			put.add(family, qualifier, bytes.getBytes());
@@ -109,7 +111,7 @@ public class Import {
 	/**
 	 * Job configuration.
 	 */
-	public static Job configureJob(Configuration conf, String inputPathName,
+	protected Job configureJob(Configuration conf, String inputPathName,
 			String tableName) throws IOException {
 		Path inputPath = new Path(inputPathName);
 		Job job = new Job(conf, NAME + "_" + tableName);
@@ -125,7 +127,7 @@ public class Import {
 		return job;
 	}
 
-	public static void createSequenceFile(String inputDirectory, String outfile)
+	protected void createSequenceFile(String inputDirectory, String outfile)
 			throws IOException {
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
@@ -139,11 +141,15 @@ public class Import {
 						new FileInputStream(file));
 				in.read(bytes);
 				in.close();
-				writer.append(new Text(file.getName()),
+				writer.append(new Text(findKey(file)),
 						new BytesWritable(bytes));
 			}
 		}
 		writer.close();
+	}
+	
+	protected String findKey(File file) {
+		return file.getName();
 	}
 
 	/**
@@ -166,8 +172,9 @@ public class Import {
 					+ " <imageFilesFolder> <sequenceFilesFolder> <tablename>");
 			System.exit(-1);
 		}
-		createSequenceFile(args[0], args[1]);
-		Job job = configureJob(conf, args[1], args[2]);
+		Import im = new Import();
+		im.createSequenceFile(args[0], args[1]);
+		Job job = im.configureJob(conf, args[1], args[2]);
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 	}
 }

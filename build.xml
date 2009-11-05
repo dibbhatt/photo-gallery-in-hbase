@@ -80,10 +80,18 @@
 		</java>
 	</target>
 
+	<target name="importImages">
+		<java classname="com.shopping.hbase.imageserver.ImportImages" fork="true" classpathref="classpath.run">
+			<arg value="${imageFilesFolder}" />
+			<arg value="${sequenceFilesFolder}" />
+			<arg value="${imageTableName}" />
+		</java>
+	</target>
+
 	<target name="export">
 		<java classname="com.shopping.hbase.sample.mapreduce.Export" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
-			<arg value="${file}"/>
+			<arg value="${id}"/>
 		</java>
 	</target>
 

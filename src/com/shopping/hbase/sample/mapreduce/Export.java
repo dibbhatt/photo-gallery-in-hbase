@@ -30,6 +30,12 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 public class Export {
 
+	/**
+	 * 
+	 *  ant export -Dfile=q11.png
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws Exception {
 		HBaseConfiguration conf = new HBaseConfiguration();
 		HTable table = new HTable(conf, args[0]);
@@ -48,7 +54,7 @@ public class Export {
 			out.close();
 			System.out.println("TimeMillis: " + (stop - start) + " " + start + " " + stop); // print execution time
 		} else {
-			System.out.println("No image is extracted with name key " + key);
+			System.out.println("No image is extracted with name key " + new String(key));
 		}
 	}
 }
