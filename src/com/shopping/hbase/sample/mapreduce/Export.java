@@ -52,7 +52,7 @@ public class Export {
 					new FileOutputStream(args[1]));
 			out.write(value);
 			out.close();
-			System.out.println("TimeMillis: " + (stop - start) + " " + start + " " + stop); // print execution time
+			System.out.println("Retrieval time in milli seconds: " + (double)(stop - start)/1000000.);// + " " + start + " " + stop); // print execution time
 		} else {
 			System.out.println("No image is extracted with name key " + new String(key));
 		}
