@@ -28,11 +28,30 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 
-public class Export {
+public class Export implements Runnable {
+	Thread t;
+	String fileName;
+	HTable table;
+	byte[] key;
+
+	Export(String fileName, HTable table, byte[] key) {
+		this.fileName = fileName;
+		this.table = table;
+		this.key = key;
+		t = new Thread(this, new String(key));
+		t.start();
+	}
+
+	public void run() {
+		System.out.println("Child thread started");
+		extract(this.fileName, this.table, this.key);
+		System.out.println("Child thread terminated");
+	}
 
 	/**
 	 * 
-	 *  ant export -Dfile=q11.png
+	 * ant export -Dfile=q11.png
+	 * 
 	 * @param args
 	 * @throws Exception
 	 */
@@ -42,19 +61,33 @@ public class Export {
 		byte[] key = Bytes.toBytes(args[1]);
 		System.out.println("table=" + new String(table.getTableName()));
 		System.out.println("key=" + new String(key));
-		long start = System.nanoTime(); // start timing
-		Get g = new Get(key);
-		Result r = table.get(g);
-		byte[] value = r.getValue(Import.family, Import.qualifier);
-		if (value != null) {
-			long stop = System.nanoTime(); // stop timing
-			BufferedOutputStream out = new BufferedOutputStream(
-					new FileOutputStream(args[1]));
-			out.write(value);
-			out.close();
-			System.out.println("Retrieval time in milli seconds: " + (double)(stop - start)/1000000.);// + " " + start + " " + stop); // print execution time
-		} else {
-			System.out.println("No image is extracted with name key " + new String(key));
+		extract(args[1], table, key);
+	}
+
+	private static void extract(String fileName, HTable table, byte[] key) {
+		try {
+			long start = System.nanoTime(); // start timing
+			Get g = new Get(key);
+			Result r = table.get(g);
+			byte[] value = r.getValue(Import.family, Import.qualifier);
+			if (value != null) {
+				long stop = System.nanoTime(); // stop timing
+				BufferedOutputStream out = new BufferedOutputStream(
+						new FileOutputStream(fileName));
+				out.write(value);
+				out.close();
+				System.out.println("Retrieval time in milli seconds: "
+						+ (double) (stop - start) / 1000000.);// + " " + start +
+																// " " + stop);
+																// // print
+																// execution
+																// time
+			} else {
+				System.out.println("No image is extracted with name key "
+						+ new String(key));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

@@ -22,6 +22,7 @@ package com.shopping.hbase.sample.mapreduce;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -84,8 +85,8 @@ public class Import {
 		@Override
 		public void map(Text key, BytesWritable bytes, Context context)
 				throws IOException {
-			//System.out.println("in map key is " + key);
-			
+			// System.out.println("in map key is " + key);
+
 			// Create Put
 			Put put = new Put(key.getBytes());
 			put.add(family, qualifier, bytes.getBytes());
@@ -129,25 +130,38 @@ public class Import {
 
 	protected void createSequenceFile(String inputDirectory, String outfile)
 			throws IOException {
+		System.out.println("reading directory " + inputDirectory);
 		Configuration conf = new Configuration();
 		FileSystem fs = FileSystem.get(conf);
 		SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf,
 				new Path(outfile), Text.class, BytesWritable.class);
 		File dir = new File(inputDirectory);
-		if (dir.exists() && dir.isDirectory()) {
-			for (File file : dir.listFiles()) {
+		int numberOfFiles = readDirectory(writer, dir);
+		System.out.println("Number of files to processed " + numberOfFiles + " to create SequenceFile " + outfile);
+		writer.close();
+	}
+
+	private int readDirectory(SequenceFile.Writer writer, File dir)
+			throws FileNotFoundException, IOException {
+		int numberOfFiles = 0;
+		for (File file : dir.listFiles()) {
+			if (file.isDirectory()) {
+				numberOfFiles += readDirectory(writer, file);
+			} else {
 				byte[] bytes = new byte[(int) file.length()];
 				BufferedInputStream in = new BufferedInputStream(
 						new FileInputStream(file));
 				in.read(bytes);
 				in.close();
-				writer.append(new Text(findKey(file)),
-						new BytesWritable(bytes));
+				numberOfFiles++;
+				writer
+						.append(new Text(findKey(file)), new BytesWritable(
+								bytes));
 			}
 		}
-		writer.close();
+		return numberOfFiles;
 	}
-	
+
 	protected String findKey(File file) {
 		return file.getName();
 	}
