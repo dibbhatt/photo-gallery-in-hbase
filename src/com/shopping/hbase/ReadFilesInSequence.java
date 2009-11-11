@@ -19,33 +19,11 @@
  */
 package com.shopping.hbase;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.util.Bytes;
-
-
-
-public class Export implements Runnable {
-	Thread t;
-	HTable table;
-	byte[] key;
-
-	Export(HTable table, byte[] key) {
-		this.table = table;
-		this.key = key;
-		System.out.println("key=" + new String(key));
-		t = new Thread(this, new String(key));
-		t.start();
-	}
-
-	public void run() {
-		System.out.println("Child thread started");
-		Utility.extract(this.table, this.key);
-		System.out.println("Child thread terminated");
-	}
+public class ReadFilesInSequence {
 
 	/**
 	 * 
@@ -55,15 +33,13 @@ public class Export implements Runnable {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		HBaseConfiguration conf = new HBaseConfiguration();
-		HTable table = new HTable(conf, args[0]);
 		ArrayList<String> keys = Utility.loadFile(args[1]);
-		System.out.println("table=" + new String(table.getTableName()));
-		for(int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
+		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
-			new Export(table, Bytes.toBytes(stk.nextToken()));
+			stk.nextToken(); stk.nextToken(); 
+			// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
+			Utility.readFile(new File(stk.nextToken()));
 		}
 	}
 
-	
 }

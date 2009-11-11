@@ -88,8 +88,32 @@
 		</java>
 	</target>
 
-	<target name="export">
-		<java classname="com.shopping.hbase.Export" fork="true" classpathref="classpath.run">
+	<target name="parallel">
+		<java classname="com.shopping.hbase.ReadInParallel" fork="true" classpathref="classpath.run">
+			<arg value="${imageTableName}" />
+			<arg value="${idListFileName}"/>
+			<arg value="${n}"/>
+		</java>
+	</target>
+
+	<target name="sequence">
+		<java classname="com.shopping.hbase.ReadInSequence" fork="true" classpathref="classpath.run">
+			<arg value="${imageTableName}" />
+			<arg value="${idListFileName}"/>
+			<arg value="${n}"/>
+		</java>
+	</target>
+
+	<target name="parallelfile">
+		<java classname="com.shopping.hbase.ReadFilesInParallel" fork="true" classpathref="classpath.run">
+			<arg value="${imageTableName}" />
+			<arg value="${idListFileName}"/>
+			<arg value="${n}"/>
+		</java>
+	</target>
+
+	<target name="sequencefile">
+		<java classname="com.shopping.hbase.ReadFilesInSequence" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
 			<arg value="${idListFileName}"/>
 			<arg value="${n}"/>

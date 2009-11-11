@@ -5,13 +5,13 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HTable;
@@ -43,21 +43,19 @@ public class Utility {
 
 	public static void extract(HTable table, byte[] key) {
 		try {
-			long start = System.currentTimeMillis();// .nanoTime(); // start
-													// timing
+			long start = System.nanoTime(); 
 			Get g = new Get(key);
 			Result r = table.get(g);
 			byte[] value = r.getValue(Import.family, Import.qualifier);
-			if (value != null) {
-				long stop = System.currentTimeMillis();// .nanoTime(); // stop
-														// timing
+			if (value != null) {														
+				long stop = System.nanoTime(); // stop
 				BufferedOutputStream out = new BufferedOutputStream(
 						new ByteArrayOutputStream());
 				// new FileOutputStream(new String(key)));
 				out.write(value);
 				out.close();
 				System.out.println("Retrieval time in milli seconds: "
-						+ (double) (stop - start));// / 1000000.);// + " " +
+						+ (double) (stop - start)/ 1000000.);// + " " +
 													// start +
 				// " " + stop);
 				// // print
@@ -67,6 +65,22 @@ public class Utility {
 				System.out.println("No image is extracted with name key "
 						+ new String(key));
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void readFile(File file) {
+		try {
+			long start = System.nanoTime(); 
+			byte[] bytes = new byte[(int) file.length()];
+			BufferedInputStream in = new BufferedInputStream(
+					new FileInputStream(file));
+			in.read(bytes);
+			in.close();
+				long stop = System.nanoTime(); // stop
+				System.out.println("Retrieval time in milli seconds: "
+						+ (double) (stop - start)/ 1000000.);// + " " +
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
