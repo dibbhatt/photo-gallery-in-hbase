@@ -91,7 +91,8 @@
 	<target name="export">
 		<java classname="com.shopping.hbase.sample.mapreduce.Export" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
-			<arg value="${id}"/>
+			<arg value="${idListFileName}"/>
+			<arg value="${n}"/>
 		</java>
 	</target>
 
