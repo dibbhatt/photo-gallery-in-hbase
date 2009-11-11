@@ -17,12 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.shopping.hbase.sample.mapreduce;
+package com.shopping.hbase.imageserver;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -42,6 +41,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+
+import com.shopping.hbase.mapreduce.Import;
 
 /**
  * Sample Importer MapReduce
@@ -70,102 +71,59 @@ import org.apache.hadoop.util.GenericOptionsParser;
  * <p>
  * This code was written against HBase 0.21 trunk.
  */
-public class Import {
+public class ImportImages extends Import {
 
-	private static final String NAME = "Import";
+	private static final String NAME = "ImportImages";
 	public static final byte[] family = Bytes.toBytes("sample");
 	public static final byte[] qualifier = Bytes.toBytes("firstSet");
 
-	static class Importer extends
-			Mapper<Text, BytesWritable, ImmutableBytesWritable, Put> {
 
-		private long checkpoint = 100;
-		private long count = 0;
+	public static String getDealIdFromImageFilenameWithUnderScore(
+			String filename) {
 
-		@Override
-		public void map(Text key, BytesWritable bytes, Context context)
-				throws IOException {
-			// System.out.println("in map key is " + key);
+		StringBuffer buff = new StringBuffer();
+		int realStartPath = filename.indexOf("di/");
+		if (realStartPath == -1)
+			realStartPath = 0;
+		else
+			realStartPath += 3;
 
-			// Create Put
-			Put put = new Put(key.getBytes());
-			put.add(family, qualifier, bytes.getBytes());
+		String basePath;
+		if (filename.indexOf('-') >= 0)
+			basePath = filename.substring(realStartPath, filename.indexOf('-'));
+		else
+			basePath = filename.substring(realStartPath, filename.indexOf('.'));
 
-			// Uncomment below to disable WAL. This will improve performance but
-			// means you will experience data loss in the case of a RegionServer
-			// crash.
-			// put.setWriteToWAL(false);
+		String[] items = basePath.split("_");
+		for (int z = 0; z < items.length; z++) {
+			if (items[z].trim().length() > 0) {
+				if (items[z].trim().length() == 2) {
+					char c = (char) Integer.parseInt(items[z], 16);
+					buff.append(c);
+				}
 
-			try {
-				context.write(new ImmutableBytesWritable(key.getBytes()), put);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			// Set status every checkpoint lines
-			if (++count % checkpoint == 0) {
-				context.setStatus("Emitting Put " + count);
-			}
-		}
-	}
-
-	/**
-	 * Job configuration.
-	 */
-	protected Job configureJob(Configuration conf, String inputPathName,
-			String tableName) throws IOException {
-		Path inputPath = new Path(inputPathName);
-		Job job = new Job(conf, NAME + "_" + tableName);
-		job.setJarByClass(Importer.class);
-		FileInputFormat.setInputPaths(job, inputPath);
-		job.setInputFormatClass(SequenceFileInputFormat.class);
-		// job.setInputFormatClass(TextInputFormat.class);
-		job.setMapperClass(Importer.class);
-		// No reducers. Just write straight to table. Call initTableReducerJob
-		// because it sets up the TableOutputFormat.
-		TableMapReduceUtil.initTableReducerJob(tableName, null, job);
-		job.setNumReduceTasks(0);
-		return job;
-	}
-
-	protected void createSequenceFile(String inputDirectory, String outfile)
-			throws IOException {
-		System.out.println("reading directory " + inputDirectory);
-		Configuration conf = new Configuration();
-		FileSystem fs = FileSystem.get(conf);
-		SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf,
-				new Path(outfile), Text.class, BytesWritable.class);
-		File dir = new File(inputDirectory);
-		int numberOfFiles = readDirectory(writer, dir);
-		System.out.println("Number of files to processed " + numberOfFiles + " to create SequenceFile " + outfile);
-		writer.close();
-	}
-
-	private int readDirectory(SequenceFile.Writer writer, File dir)
-			throws FileNotFoundException, IOException {
-		int numberOfFiles = 0;
-		for (File file : dir.listFiles()) {
-			if (file.isDirectory()) {
-				numberOfFiles += readDirectory(writer, file);
-			} else {
-				byte[] bytes = new byte[(int) file.length()];
-				BufferedInputStream in = new BufferedInputStream(
-						new FileInputStream(file));
-				in.read(bytes);
-				in.close();
-				numberOfFiles++;
-				writer
-						.append(new Text(findKey(file)), new BytesWritable(
-								bytes));
+				if (items[z].trim().length() > 2) {
+					for (int y = 0; y < items[z].length(); y += 2) {
+						char c = (char) Integer.parseInt(items[z].substring(y,
+								y + 2), 16);
+						buff.append(c);
+					}
+				}
 			}
 		}
-		return numberOfFiles;
+		if (buff.length() > 0)
+			buff.append("==");
+		return buff.toString();
 	}
-
+	
 	protected String findKey(File file) {
-		return file.getName();
+		String dealId = getDealIdFromImageFilenameWithUnderScore(file.getName());
+		//System.out.println("dealId =" + dealId);
+		return dealId;
 	}
 
+	
+	
 	/**
 	 * Main entry point.
 	 * 
@@ -186,7 +144,7 @@ public class Import {
 					+ " <imageFilesFolder> <sequenceFilesFolder> <tablename>");
 			System.exit(-1);
 		}
-		Import im = new Import();
+		ImportImages im = new ImportImages();
 		im.createSequenceFile(args[0], args[1]);
 		Job job = im.configureJob(conf, args[1], args[2]);
 		System.exit(job.waitForCompletion(true) ? 0 : 1);

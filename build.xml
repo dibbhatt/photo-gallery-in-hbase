@@ -73,7 +73,7 @@
 	</target>
 
 	<target name="import">
-		<java classname="com.shopping.hbase.sample.mapreduce.Import" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.mapreduce.Import" fork="true" classpathref="classpath.run">
 			<arg value="${imageFilesFolder}" />
 			<arg value="${sequenceFilesFolder}" />
 			<arg value="${imageTableName}" />
@@ -89,10 +89,17 @@
 	</target>
 
 	<target name="export">
-		<java classname="com.shopping.hbase.sample.mapreduce.Export" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.Export" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
 			<arg value="${idListFileName}"/>
 			<arg value="${n}"/>
+		</java>
+	</target>
+
+	<target name="genKeys">
+		<java classname="com.shopping.hbase.imageserver.KeyListGenerator" fork="true" classpathref="classpath.run">
+			<arg value="${in}" />
+			<arg value="${out}"/>
 		</java>
 	</target>
 
