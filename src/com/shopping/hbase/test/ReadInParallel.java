@@ -17,8 +17,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.shopping.hbase;
+package com.shopping.hbase.test;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -26,17 +30,21 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import com.shopping.hbase.Utility;
+
 public class ReadInParallel implements Runnable {
 	Thread t;
 	HTable table;
 	byte[] key;
+	PrintWriter out;
 
-	ReadInParallel(HTable table, byte[] key) {
+	ReadInParallel(HTable table, byte[] key, File outFile) {
 		try {
 			HBaseConfiguration conf = new HBaseConfiguration();
 			this.table = new HTable(conf, table.getTableName());
 			//this.table = table; // doesn't behave right in the multithread access
 			this.key = key;
+			this.out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
 			System.out.println("key=" + new String(key));
 			t = new Thread(this, new String(key));
 			t.start();
@@ -46,7 +54,7 @@ public class ReadInParallel implements Runnable {
 	}
 
 	public void run() {
-		Utility.extract(this.table, this.key);
+		Utility.measureReadingHbase(this.table, this.key, out);
 	}
 
 	/**
@@ -61,7 +69,7 @@ public class ReadInParallel implements Runnable {
 		System.out.println("table=" + new String(table.getTableName()));
 		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
-			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()));
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), new File(args[3]));
 		}
 	}
 

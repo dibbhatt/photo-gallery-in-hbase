@@ -30,5 +30,6 @@
 	<classpathentry kind="lib" path="lib/servlet-api-2.5-6.1.14.jar"/>
 	<classpathentry kind="lib" path="lib/xmlenc-0.52.jar"/>
 	<classpathentry kind="lib" path="lib/zookeeper-3.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/netty-3.1.5.GA.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -3,11 +3,15 @@ package com.shopping.hbase;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -19,8 +23,8 @@ import org.apache.hadoop.hbase.client.Result;
 
 import com.shopping.hbase.mapreduce.Import;
 
-public class Utility {	
-	
+public class Utility {
+
 	public static ArrayList<String> loadFile(String fileName) {
 		if ((fileName == null) || (fileName == ""))
 			throw new IllegalArgumentException();
@@ -41,26 +45,19 @@ public class Utility {
 		return lines;
 	}
 
-	public static void extract(HTable table, byte[] key) {
+	public static void measureReadingHbase(HTable table, byte[] key, PrintWriter out) {
 		try {
-			long start = System.nanoTime(); 
+			long start = System.nanoTime();
 			Get g = new Get(key);
 			Result r = table.get(g);
 			byte[] value = r.getValue(Import.family, Import.qualifier);
-			if (value != null) {														
+			if (value != null) {
 				long stop = System.nanoTime(); // stop
-				BufferedOutputStream out = new BufferedOutputStream(
+				BufferedOutputStream outToNull = new BufferedOutputStream(
 						new ByteArrayOutputStream());
-				// new FileOutputStream(new String(key)));
-				out.write(value);
-				out.close();
-				System.out.println("Retrieval time in milli seconds: "
-						+ (double) (stop - start)/ 1000000.);// + " " +
-													// start +
-				// " " + stop);
-				// // print
-				// execution
-				// time
+				outToNull.write(value);
+				outToNull.close();
+				out.println((double) (stop - start) / 1000000.);// + " " +
 			} else {
 				System.out.println("No image is extracted with name key "
 						+ new String(key));
@@ -70,26 +67,78 @@ public class Utility {
 		}
 	}
 
-	public static void readFile(File file) {
+	public static void measureReadingFile(File file, PrintWriter out) {
 		try {
-			long start = System.nanoTime(); 
-			byte[] bytes = new byte[(int) file.length()];
+			long start = System.nanoTime();
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			BufferedOutputStream outToNull = new BufferedOutputStream(byteArrayOutputStream);
 			BufferedInputStream in = new BufferedInputStream(
 					new FileInputStream(file));
-			in.read(bytes);
+			byte[] bytes = new byte[1024];
+			int counter = 0;
+			while ((counter += in.read(bytes)) > 0) {
+				outToNull.write(bytes);
+			}
 			in.close();
-				long stop = System.nanoTime(); // stop
-				System.out.println("Retrieval time in milli seconds: "
-						+ (double) (stop - start)/ 1000000.);// + " " +
+			outToNull.close();
+			long stop = System.nanoTime(); // stop
+			out.println((double) (stop - start) / 1000000.);// + " " +
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	public static String readFile(File file) {
+		try {
+			StringWriter stringWriter = new StringWriter();
+			PrintWriter out = new PrintWriter(new BufferedWriter(stringWriter));
+			BufferedReader in = new BufferedReader(
+					new FileReader(file));
+			String line;
+			while( (line = in.readLine()) != null) {
+				out.println(line);
+			}
+			in.close();
+			out.close();
+			return stringWriter.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	public static String readURL(URL url) {
+		try {
+			URLConnection urlConnection = url.openConnection();
+			BufferedInputStream in = new BufferedInputStream(urlConnection.getInputStream());
+			return read(in);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String read(InputStream in) {
+		try {
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			BufferedOutputStream out = new BufferedOutputStream(byteArrayOutputStream);
+			byte[] bytes = new byte[1024];
+			int counter = 0;
+			while ((counter += in.read(bytes)) > 0) {
+				out.write(bytes);
+			}
+			in.close();
+			out.close();
+			return byteArrayOutputStream.toString("UTF8");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public static double getResponseTime(String url) throws IOException,
 			MalformedURLException {
-		// BufferedOutputStream out = new BufferedOutputStream(
-		// new FileOutputStream("out.jpg"));
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		BufferedOutputStream out = new BufferedOutputStream(byteArrayOutputStream);
 		long start = System.nanoTime(); // start timing
 		URLConnection urlConnection = new URL(url).openConnection();
 		BufferedInputStream in = new BufferedInputStream(urlConnection
@@ -97,10 +146,10 @@ public class Utility {
 		byte[] bytes = new byte[1024];
 		int counter = 0;
 		while ((counter += in.read(bytes)) > 0) {
-			// out.write(bytes);
+			out.write(bytes);
 		}
 		in.close();
-		// out.close();
+		out.close();
 		long stop = System.nanoTime(); // stop timing
 		return (double) (stop - start) / 1000000.;
 	}

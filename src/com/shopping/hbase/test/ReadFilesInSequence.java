@@ -17,11 +17,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.shopping.hbase;
+package com.shopping.hbase.test;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+
+import com.shopping.hbase.Utility;
 
 public class ReadFilesInSequence {
 
@@ -34,12 +39,14 @@ public class ReadFilesInSequence {
 	 */
 	public static void main(String[] args) throws Exception {
 		ArrayList<String> keys = Utility.loadFile(args[1]);
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(args[3])));
 		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
 			stk.nextToken(); stk.nextToken(); 
 			// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
-			Utility.readFile(new File(stk.nextToken()));
+			Utility.measureReadingFile(new File(stk.nextToken()), out);
 		}
+		out.close();
 	}
 
 }

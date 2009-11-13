@@ -17,44 +17,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.shopping.hbase;
+package com.shopping.hbase.test;
 
-import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-public class ReadFilesInParallel implements Runnable {
-	Thread t;
-	File file;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.util.Bytes;
 
-	ReadFilesInParallel(File file) {
-		try {
-			this.file = file;
-			System.out.println("file=" + file);
-			t = new Thread(this, file.getName());
-			t.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+import com.shopping.hbase.Utility;
 
-	public void run() {
-		Utility.readFile(this.file);
-	}
+public class ReadInSequence {
 
 	/**
+	 * 
+	 * ant export -Dn=4
 	 * 
 	 * @param args
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
+		HBaseConfiguration conf = new HBaseConfiguration();
+		HTable table = new HTable(conf, args[0]);
 		ArrayList<String> keys = Utility.loadFile(args[1]);
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(args[3])));
 		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
-			stk.nextToken(); stk.nextToken(); 
-			// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
-			new ReadFilesInParallel(new File(stk.nextToken()));
+			Utility.measureReadingHbase(table, Bytes.toBytes(stk.nextToken()), out);
 		}
+		out.close();
 	}
 
 }

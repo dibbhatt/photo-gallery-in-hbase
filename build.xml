@@ -89,41 +89,51 @@
 	</target>
 
 	<target name="parallel">
-		<java classname="com.shopping.hbase.ReadInParallel" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.test.ReadInParallel" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
-			<arg value="${idListFileName}"/>
-			<arg value="${n}"/>
+			<arg value="${idListFileName}" />
+			<arg value="${n}" />
+			<arg value="${out}" />
 		</java>
 	</target>
 
 	<target name="sequence">
-		<java classname="com.shopping.hbase.ReadInSequence" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.test.ReadInSequence" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
-			<arg value="${idListFileName}"/>
-			<arg value="${n}"/>
+			<arg value="${idListFileName}" />
+			<arg value="${n}" />
+			<arg value="${out}" />
 		</java>
 	</target>
 
 	<target name="parallelfile">
-		<java classname="com.shopping.hbase.ReadFilesInParallel" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.test.ReadFilesInParallel" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
-			<arg value="${idListFileName}"/>
-			<arg value="${n}"/>
+			<arg value="${idListFileName}" />
+			<arg value="${n}" />
+			<arg value="${out}" />
 		</java>
 	</target>
 
 	<target name="sequencefile">
-		<java classname="com.shopping.hbase.ReadFilesInSequence" fork="true" classpathref="classpath.run">
+		<java classname="com.shopping.hbase.test.ReadFilesInSequence" fork="true" classpathref="classpath.run">
 			<arg value="${imageTableName}" />
-			<arg value="${idListFileName}"/>
-			<arg value="${n}"/>
+			<arg value="${idListFileName}" />
+			<arg value="${n}" />
+			<arg value="${out}" />
 		</java>
 	</target>
 
 	<target name="genKeys">
 		<java classname="com.shopping.hbase.imageserver.KeyListGenerator" fork="true" classpathref="classpath.run">
 			<arg value="${in}" />
-			<arg value="${out}"/>
+			<arg value="keys.txt" />
+			<arg value="keysAndMore.csv" />
+		</java>
+	</target>
+
+	<target name="server">
+		<java classname="com.shopping.hbase.imageserver.netty.HttpServer" fork="true" classpathref="classpath.run">
 		</java>
 	</target>
 
