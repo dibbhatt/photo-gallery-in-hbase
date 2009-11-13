@@ -54,6 +54,7 @@
 	<!-- ================================================================== -->
 	<target name="sample" depends="compile" description="Make the Hadoop examples jar.">
 		<jar jarfile="${final.name}.jar" basedir="${build.dir}">
+			<fileset dir="${src.dir}" includes="**/*.htm"  />
 		</jar>
 	</target>
 	<!--

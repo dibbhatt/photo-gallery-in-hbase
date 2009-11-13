@@ -33,11 +33,12 @@ public class ReadFilesInParallel implements Runnable {
 	File file;
 	PrintWriter out;
 
-	ReadFilesInParallel(File file, File outFile) {
+	ReadFilesInParallel(File file, PrintWriter out) {
 		try {
 			this.file = file;
-			this.out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
-			//System.out.println("file=" + file);
+			this.out = out;// new PrintWriter(new BufferedWriter(new
+							// FileWriter(outFile)));
+			// System.out.println("file=" + file);
 			t = new Thread(this, file.getName());
 			t.start();
 		} catch (Exception e) {
@@ -47,7 +48,6 @@ public class ReadFilesInParallel implements Runnable {
 
 	public void run() {
 		Utility.measureReadingFile(this.file, this.out);
-		this.out.close();
 	}
 
 	/**
@@ -56,13 +56,43 @@ public class ReadFilesInParallel implements Runnable {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		ArrayList<String> keys = Utility.loadFile(args[1]);
-		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
+		// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
+		int numberOfKeys = Integer.parseInt(args[2]);
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
+				new File(args[3]))));
+		ArrayList<String> keys = Utility.getRandomKeys(args[1]);
+		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
-			stk.nextToken(); stk.nextToken(); 
-			// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
-			new ReadFilesInParallel(new File(stk.nextToken()), new File(args[3]));
+			stk.nextToken();
+			stk.nextToken();
+			new ReadFilesInParallel(new File(stk.nextToken()), out);
 		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 2nd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			stk.nextToken();
+			stk.nextToken();
+			new ReadFilesInParallel(new File(stk.nextToken()), out);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 3rd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			stk.nextToken();
+			stk.nextToken();
+			new ReadFilesInParallel(new File(stk.nextToken()), out);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 4th time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			stk.nextToken();
+			stk.nextToken();
+			new ReadFilesInParallel(new File(stk.nextToken()), out);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.close();
 	}
 
 }

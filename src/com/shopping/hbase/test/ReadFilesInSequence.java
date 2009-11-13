@@ -38,12 +38,32 @@ public class ReadFilesInSequence {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		ArrayList<String> keys = Utility.loadFile(args[1]);
+		// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
+		int numberOfKeys = Integer.parseInt(args[2]);
 		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(args[3])));
-		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
+
+		ArrayList<String> keys = Utility.getRandomKeys(args[1]);
+		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
 			stk.nextToken(); stk.nextToken(); 
-			// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
+			Utility.measureReadingFile(new File(stk.nextToken()), out);
+		}
+		out.println("---------------------- 2nd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			stk.nextToken(); stk.nextToken(); 
+			Utility.measureReadingFile(new File(stk.nextToken()), out);
+		}
+		out.println("---------------------- 3rd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			stk.nextToken(); stk.nextToken(); 
+			Utility.measureReadingFile(new File(stk.nextToken()), out);
+		}
+		out.println("---------------------- 4th time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			stk.nextToken(); stk.nextToken(); 
 			Utility.measureReadingFile(new File(stk.nextToken()), out);
 		}
 		out.close();

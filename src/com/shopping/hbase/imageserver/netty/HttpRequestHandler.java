@@ -21,9 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -78,22 +76,24 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 						writeResponse(e, val);
 					}
 				} else {
-					writeStaticPage(e);
+					writeStaticPage(e, false);
 				}
-			}		
+			}
 		} else {
-			writeStaticPage(e);
+			writeStaticPage(e, false);
 		}
 	}
 
 	private void writeResponse(MessageEvent e, String id) {
 		try {
-			HBaseConfiguration conf = new HBaseConfiguration();
-			HTable table = new HTable(conf, "images");
 			Get g = new Get(Bytes.toBytes(id));
-			Result r = table.get(g);
+			Result r = HttpServer.table.get(g);
 			byte[] value = r.getValue(Import.family, Import.qualifier);
 
+			if (value == null) {
+				writeStaticPage(e, true);
+				return;
+			}
 			ChannelBuffer buf = ChannelBuffers.copiedBuffer(value);
 
 			// Decide whether to close the connection or not.
@@ -144,53 +144,61 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 			exception.printStackTrace();
 		}
 	}
-    private void writeStaticPage(MessageEvent e) {
-        // Convert the response content to a ChannelBuffer.
-    	InputStream in = this.getClass().getResourceAsStream("/com/shopping/hbase/imageserver/netty/Lookup_Deal_Image.htm");
-    	String page = in != null ? Utility.read(in) : "Page not found";
-    	
-        ChannelBuffer buf = ChannelBuffers.copiedBuffer(page, "UTF-8");
-        responseContent.setLength(0);
 
-        // Decide whether to close the connection or not.
-        boolean close =
-            HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)) ||
-            request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-            !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION));
+	private void writeStaticPage(MessageEvent e, boolean isNotFound) {
+		// Convert the response content to a ChannelBuffer.
+		InputStream in = this.getClass().getResourceAsStream(
+				"/com/shopping/hbase/imageserver/netty/Lookup_Deal_Image.htm");
+		String page = isNotFound ? "Image not Found" : in != null ? Utility
+				.read(in) : "Page or Image not found";
 
-        // Build the response object.
-        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        response.setContent(buf);
-        response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
+		ChannelBuffer buf = ChannelBuffers.copiedBuffer(page, "UTF-8");
+		responseContent.setLength(0);
 
-        if (!close) {
-            // There's no need to add 'Content-Length' header
-            // if this is the last response.
-            response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
-        }
+		// Decide whether to close the connection or not.
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
+				.getHeader(HttpHeaders.Names.CONNECTION))
+				|| request.getProtocolVersion().equals(HttpVersion.HTTP_1_0)
+				&& !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request
+						.getHeader(HttpHeaders.Names.CONNECTION));
 
-        String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
-        if (cookieString != null) {
-            CookieDecoder cookieDecoder = new CookieDecoder();
-            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
-            if(!cookies.isEmpty()) {
-                // Reset the cookies if necessary.
-                CookieEncoder cookieEncoder = new CookieEncoder(true);
-                for (Cookie cookie : cookies) {
-                    cookieEncoder.addCookie(cookie);
-                }
-                response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-            }
-        }
+		// Build the response object.
+		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+				HttpResponseStatus.OK);
+		response.setContent(buf);
+		response.setHeader(HttpHeaders.Names.CONTENT_TYPE,
+				"text/html; charset=UTF-8");
 
-        // Write the response.
-        ChannelFuture future = e.getChannel().write(response);
+		if (!close) {
+			// There's no need to add 'Content-Length' header
+			// if this is the last response.
+			response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String
+					.valueOf(buf.readableBytes()));
+		}
 
-        // Close the connection after the write operation is done if necessary.
-        if (close) {
-            future.addListener(ChannelFutureListener.CLOSE);
-        }
-    }
+		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+		if (cookieString != null) {
+			CookieDecoder cookieDecoder = new CookieDecoder();
+			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			if (!cookies.isEmpty()) {
+				// Reset the cookies if necessary.
+				CookieEncoder cookieEncoder = new CookieEncoder(true);
+				for (Cookie cookie : cookies) {
+					cookieEncoder.addCookie(cookie);
+				}
+				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder
+						.encode());
+			}
+		}
+
+		// Write the response.
+		ChannelFuture future = e.getChannel().write(response);
+
+		// Close the connection after the write operation is done if necessary.
+		if (close) {
+			future.addListener(ChannelFutureListener.CLOSE);
+		}
+	}
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)

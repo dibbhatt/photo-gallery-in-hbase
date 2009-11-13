@@ -42,12 +42,51 @@ public class ReadInSequence {
 	 */
 	public static void main(String[] args) throws Exception {
 		HBaseConfiguration conf = new HBaseConfiguration();
-		HTable table = new HTable(conf, args[0]);
-		ArrayList<String> keys = Utility.loadFile(args[1]);
+		int numberOfKeys = Integer.parseInt(args[2]);
 		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(args[3])));
-		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
+		String tableName = args[0];
+		HTable table = new HTable(conf, tableName);
+
+		ArrayList<String> keys = Utility.getRandomKeys(args[1]);
+		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
 			Utility.measureReadingHbase(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- 2nd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- 3rd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- 4th time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- Now not shring configuration & table --------------" );
+		keys = Utility.getRandomKeys(args[1]);
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(tableName, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- 2nd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(tableName, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- 3rd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(tableName, Bytes.toBytes(stk.nextToken()), out);
+		}
+		out.println("---------------------- 4th time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			Utility.measureReadingHbase(tableName, Bytes.toBytes(stk.nextToken()), out);
 		}
 		out.close();
 	}

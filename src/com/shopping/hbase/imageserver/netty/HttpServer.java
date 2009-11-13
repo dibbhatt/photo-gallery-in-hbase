@@ -18,6 +18,8 @@ package com.shopping.hbase.imageserver.netty;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.HTable;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 
@@ -33,7 +35,11 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
  */
 public class HttpServer {
 	
-    public static void main(String[] args) {
+	public static HTable table;
+	
+    public static void main(String[] args) throws Exception {
+    	HBaseConfiguration conf = new HBaseConfiguration();
+    	table = new HTable(conf, "images");
         // Configure the server.
         ServerBootstrap bootstrap = new ServerBootstrap(
                 new NioServerSocketChannelFactory(

@@ -37,15 +37,21 @@ public class ReadInParallel implements Runnable {
 	HTable table;
 	byte[] key;
 	PrintWriter out;
+	boolean shareTable = true;
 
-	ReadInParallel(HTable table, byte[] key, File outFile) {
+	ReadInParallel(HTable table, byte[] key, PrintWriter out, boolean shareTable) {
+		this(table, key, out);
+		this.shareTable = shareTable;
+	}
+	
+	ReadInParallel(HTable table, byte[] key, PrintWriter out) {
 		try {
-			HBaseConfiguration conf = new HBaseConfiguration();
-			this.table = new HTable(conf, table.getTableName());
-			//this.table = table; // doesn't behave right in the multithread access
+			this.table = table; // doesn't behave right in the multithread
+			// access
 			this.key = key;
-			this.out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
-			System.out.println("key=" + new String(key));
+			this.out = out;// new PrintWriter(new BufferedWriter(new
+							// FileWriter(outFile)));
+			//System.out.println("key=" + new String(key));
 			t = new Thread(this, new String(key));
 			t.start();
 		} catch (Exception e) {
@@ -54,7 +60,8 @@ public class ReadInParallel implements Runnable {
 	}
 
 	public void run() {
-		Utility.measureReadingHbase(this.table, this.key, out);
+		if(this.shareTable) Utility.measureReadingHbase(this.table, this.key, out);
+		else Utility.measureReadingHbase(new String(this.table.getTableName()), this.key, out);
 	}
 
 	/**
@@ -64,13 +71,63 @@ public class ReadInParallel implements Runnable {
 	 */
 	public static void main(String[] args) throws Exception {
 		HBaseConfiguration conf = new HBaseConfiguration();
-		HTable table = new HTable(conf, args[0]);
-		ArrayList<String> keys = Utility.loadFile(args[1]);
+		int numberOfKeys = Integer.parseInt(args[2]);
+		String tableName = args[0];
+		HTable table = new HTable(conf, tableName);
 		System.out.println("table=" + new String(table.getTableName()));
-		for (int indx = 0; indx != Integer.parseInt(args[2]); indx++) {
-			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
-			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), new File(args[3]));
-		}
-	}
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
+				new File(args[3]))));
 
+		ArrayList<String> keys = Utility.getRandomKeys(args[1]);
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 2nd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 3rd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 4th time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out);
+		}
+		// wait until all threads are finished
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- Now not shring configuration & table --------------" );
+		keys = Utility.getRandomKeys(args[1]);
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out, false);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 2nd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out, false);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 3rd time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out, false);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.println("---------------------- 4th time --------------" );
+		for (int indx = 0; indx != numberOfKeys; indx++) {
+			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
+			new ReadInParallel(table, Bytes.toBytes(stk.nextToken()), out, false);
+		}
+		Utility.sync(numberOfKeys, out);
+		out.close();
+	}
 }
