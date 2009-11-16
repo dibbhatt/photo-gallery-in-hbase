@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
 import com.shopping.hbase.Utility;
 
 public class ReadFilesInParallel implements Runnable {
-	Thread t;
+	Thread thread;
 	File file;
 	PrintWriter out;
 
@@ -37,10 +37,10 @@ public class ReadFilesInParallel implements Runnable {
 		try {
 			this.file = file;
 			this.out = out;// new PrintWriter(new BufferedWriter(new
-							// FileWriter(outFile)));
+			// FileWriter(outFile)));
 			// System.out.println("file=" + file);
-			t = new Thread(this, file.getName());
-			t.start();
+			thread = new Thread(this, file.getName());
+			thread.start();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,8 +58,7 @@ public class ReadFilesInParallel implements Runnable {
 	public static void main(String[] args) throws Exception {
 		// svKfdQk_0Bm4fseU9SA==,73764b6664516b5f30426d3466736555395341.jpg,/home/hakhlaghpour/sample/images/35/43/73764b6664516b5f30426d3466736555395341.jpg
 		int numberOfKeys = Integer.parseInt(args[2]);
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(
-				new File(args[3]))));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(new File(args[3]))));
 		ArrayList<String> keys = Utility.getRandomKeys(args[1]);
 		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
@@ -68,7 +67,7 @@ public class ReadFilesInParallel implements Runnable {
 			new ReadFilesInParallel(new File(stk.nextToken()), out);
 		}
 		Utility.sync(numberOfKeys, out);
-		out.println("---------------------- 2nd time --------------" );
+		out.println("---------------------- 2nd time --------------");
 		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
 			stk.nextToken();
@@ -76,7 +75,7 @@ public class ReadFilesInParallel implements Runnable {
 			new ReadFilesInParallel(new File(stk.nextToken()), out);
 		}
 		Utility.sync(numberOfKeys, out);
-		out.println("---------------------- 3rd time --------------" );
+		out.println("---------------------- 3rd time --------------");
 		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
 			stk.nextToken();
@@ -84,7 +83,7 @@ public class ReadFilesInParallel implements Runnable {
 			new ReadFilesInParallel(new File(stk.nextToken()), out);
 		}
 		Utility.sync(numberOfKeys, out);
-		out.println("---------------------- 4th time --------------" );
+		out.println("---------------------- 4th time --------------");
 		for (int indx = 0; indx != numberOfKeys; indx++) {
 			StringTokenizer stk = new StringTokenizer(keys.get(indx), ",");
 			stk.nextToken();

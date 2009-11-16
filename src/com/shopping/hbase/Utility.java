@@ -146,7 +146,7 @@ public class Utility {
 			int counter = 0;
 			long start2 = System.nanoTime();
 			while ((counter += in.read(bytes)) > 0) {
-				outToNull.write(bytes);
+				outToNull.write(bytes, 0, counter);
 			}
 			in.close();
 			outToNull.close();
@@ -201,7 +201,7 @@ public class Utility {
 			byte[] bytes = new byte[1024];
 			int counter = 0;
 			while ((counter += in.read(bytes)) > 0) {
-				out.write(bytes);
+				out.write(bytes, 0, counter);
 			}
 			in.close();
 			out.close();
@@ -224,7 +224,7 @@ public class Utility {
 		byte[] bytes = new byte[1024];
 		int counter = 0;
 		while ((counter += in.read(bytes)) > 0) {
-			out.write(bytes);
+			out.write(bytes, 0, counter);
 		}
 		in.close();
 		out.close();
